@@ -86,6 +86,7 @@ class GeoNodePublishHandler(ImportHandlerMixin):
         typename = '{}:{}'.format(workspace_name.encode('utf-8'), layer_name.encode('utf-8'))
 
         # Calculate time extent from data if start_date or end_date are configured
+        logger.debug('Setting Time Extent in Geonode')
         if 'start_date' in layer_config or 'end_date' in layer_config:
             conn = db.connections[settings.OSGEO_DATASTORE]
             cursor = conn.cursor()
