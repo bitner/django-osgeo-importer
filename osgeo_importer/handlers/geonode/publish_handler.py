@@ -7,6 +7,7 @@ from django.conf import settings
 from osgeo_importer.handlers import ImportHandlerMixin
 from osgeo_importer.handlers import ensure_can_run
 from osgeo_importer.models import UploadLayer
+from osgeo_importer.utils import quote_ident
 from geonode.layers.models import Layer
 from backward_compatibility import set_attributes
 from django.contrib.auth import get_user_model
@@ -84,6 +85,29 @@ class GeoNodePublishHandler(ImportHandlerMixin):
         workspace_name = self.workspace
         typename = '{}:{}'.format(workspace_name.encode('utf-8'), layer_name.encode('utf-8'))
 
+        # Calculate time extent from data if start_date or end_date are configured
+        if 'start_date' in layer_config or 'end_date' in layer_config:
+            conn = db.connections[settings.OSGEO_DATASTORE]
+            cursor = conn.cursor()
+            scrub_layer_name = quote_ident(layer_name)
+
+            if 'start_date' in layer_config and 'end_date' in layer_config:
+                startcolumn = quote_ident('%s_as_date' % layer_config['start_date'])
+                endcolumn = quote_ident('%s_as_date' % layer_config['end_date'])
+                query = 'SELECT min(%s), max(%s) FROM %s;' % (startcolumn, endcolumn, scrub_layer_name)
+                mint, maxt = cursor.execute(query)
+            else if 'start_date' in layer_config:
+                startcolumn = quote_ident('%s_as_date' % layer_config['start_date'])
+                query = 'SELECT min(%s), max(%s) FROM %s;' % (startcolumn, startcolumn, scrub_layer_name)
+                mint, maxt = cursor.execute(query)
+            else:
+                endcolumn = quote_ident('%s_as_date' % layer_config['end_date'])
+                query = 'SELECT min(%s), max(%s) FROM %s;' % (endcolumn, endcolumn, scrub_layer_name)
+                mint, maxt = cursor.execute(query)
+        else:
+            mint = None
+            maxt = None
+            
         new_layer_kwargs = {
             'name': layer_name,
             'workspace': self.workspace,
@@ -94,6 +118,8 @@ class GeoNodePublishHandler(ImportHandlerMixin):
             "abstract": 'No abstract provided',
             'owner': owner,
             'uuid': layer_uuid,
+            'temporal_extent_start': mint,
+            'temporal_extent_end': maxt,
         }
 
         new_layer, created = Layer.objects.get_or_create(**new_layer_kwargs)
@@ -114,7 +140,7 @@ class GeoNodePublishHandler(ImportHandlerMixin):
         if fields:
             attribute_map = [[f['name'], f['type']] for f in fields]
             set_attributes(new_layer, attribute_map)
-
+                
         if self.importer.upload_file and created:
             upload_layer = UploadLayer.objects.get(upload_file=self.importer.upload_file.pk,
                                                    index=layer_config.get('index'))
@@ -124,7 +150,7 @@ class GeoNodePublishHandler(ImportHandlerMixin):
         if 'permissions' in layer_config:
             new_layer.set_permissions(layer_config['permissions'])
         else:
-            new_layer.set_default_permissions()
+            new_layer.set_default_permissions()     
 
         results = {
             'stats': {
