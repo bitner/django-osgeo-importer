@@ -624,6 +624,7 @@ def convert_wkt_to_epsg(wkt, epsg_directory=settings.PROJECTION_DIRECTORY, force
 
 
 def reproject_coordinate_system(original_layer_name, layer_name, in_shp_layer, layer_path):
+    logger.info('reproject_coordinate_system %s %s %s %s', original_layer_name, layer_name, in_shp_layer, layer_path)
 
     def get_geometry_type(geometry_name):
         switcher = {
