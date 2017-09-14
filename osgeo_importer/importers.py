@@ -373,6 +373,7 @@ class OGRImport(Import):
                     layer_path = ul.upload.upload_dir
                     layer_path = UploadLayer.objects.get
                     original_layer_name = layer.GetName()
+                    logger.info('REPROJECTING %s %s %s %s',original_layer_name, layer_name, layer, layer_path)
                     layer_options['srs'] = reproject_coordinate_system(original_layer_name, layer_name, layer, layer_path)
                     data, inspector = self.open_source_datastore(filename, *args, **kwargs)
                     target_file, _ = self.open_target_datastore(self.target_store)
