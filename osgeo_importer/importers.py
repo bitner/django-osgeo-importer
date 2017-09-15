@@ -7,6 +7,7 @@ from django.core.files.storage import FileSystemStorage
 import gdal
 import ogr
 import osr
+import sys
 
 from osgeo_importer.models import UploadLayer
 
@@ -371,8 +372,6 @@ class OGRImport(Import):
                     # layer_path = '{}/{}'.format(UPLOAD_DIR, layer_id)
                     ul = upload_layers_by_id[layer_id]
                     upload_id = ul.upload.id
-                    # layer_path = ul.upload.upload_dir
-                    # layer_path = 'test{}/{}'.format(UPLOAD_DIR, upload_id)
                     layer_path = os.path.dirname(filename)
                     original_layer_name = layer.GetName()
                     logger.info('REPROJECTING %s %s %s %s',original_layer_name, layer_name, layer, layer_path)
