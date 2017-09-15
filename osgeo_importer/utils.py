@@ -624,7 +624,7 @@ def convert_wkt_to_epsg(wkt, epsg_directory=settings.PROJECTION_DIRECTORY, force
 
 
 def reproject_coordinate_system(original_layer_name, layer_name, in_shp_layer, layer_path):
-    logger.info('reproject_coordinate_system %s %s %s %s', original_layer_name, layer_name, in_shp_layer, layer_path)
+    logger.warning('reproject_coordinate_system %s %s %s %s', original_layer_name, layer_name, in_shp_layer, layer_path)
 
     def get_geometry_type(geometry_name):
         switcher = {
@@ -663,6 +663,7 @@ def reproject_coordinate_system(original_layer_name, layer_name, in_shp_layer, l
     feature = in_shp_layer.GetNextFeature()
     geometry = feature.GetGeometryRef()
     geometry_type = get_geometry_type(geometry.GetGeometryName())
+    logger.debug('layer_name %s', layer_name)
     output_shp_layer = output_shp_dataset.CreateLayer('{}_4326'.format(layer_name), output_srs, geometry_type)
 
     # add fields to the new output Shapefile

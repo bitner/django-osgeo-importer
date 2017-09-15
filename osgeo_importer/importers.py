@@ -24,7 +24,7 @@ from .utils import (
     database_schema_name
 )  # noqa: F401
 
-
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 ogr.UseExceptions()
 
@@ -370,7 +370,10 @@ class OGRImport(Import):
                     layer_id = layer_ids[0]
                     # layer_path = '{}/{}'.format(UPLOAD_DIR, layer_id)
                     ul = upload_layers_by_id[layer_id]
-                    layer_path = ul.upload.upload_dir
+                    upload_id = ul.upload.id
+                    # layer_path = ul.upload.upload_dir
+                    # layer_path = 'test{}/{}'.format(UPLOAD_DIR, upload_id)
+                    layer_path = os.path.dirname(filename)
                     original_layer_name = layer.GetName()
                     logger.info('REPROJECTING %s %s %s %s',original_layer_name, layer_name, layer, layer_path)
                     layer_options['srs'] = reproject_coordinate_system(original_layer_name, layer_name, layer, layer_path)
