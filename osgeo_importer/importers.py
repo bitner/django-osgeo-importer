@@ -413,8 +413,20 @@ class OGRImport(Import):
                     srs = layer.GetSpatialRef()
 
                 logger.info('Creating dataset "{}" from file "{}"'.format(layer_name, target_file))
-                target_layer = self.create_target_dataset(target_file, str(layer_name), srs, layer_geom_type,
-                                                          options=target_create_options)
+                try:
+                    target_layer = self.create_target_dataset(target_file, 
+                                                              str(layer_name), 
+                                                              srs, 
+                                                              layer_geom_type,
+                                                              options=target_create_options)
+                except:
+                    logger.exception('Could not add using copy, trying inserts')
+                    os.environ["PG_USE_COPY"] = "false"
+                    target_layer = self.create_target_dataset(target_file, 
+                                                              str(layer_name), 
+                                                              srs, 
+                                                              layer_geom_type,
+                                                              options=target_create_options)
 
                 # adding fields to new layer
                 layer_definition = ogr.Feature(layer.GetLayerDefn())
