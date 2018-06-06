@@ -4,8 +4,11 @@ import sqlite3
 
 from django import db
 from django.conf import settings
-import gdal
-import ogr
+try:
+    import gdal
+    import ogr
+except:
+    from osgeo import gdal, ogr
 from osgeo_importer.utils import NoDataSourceFound, GDAL_GEOMETRY_TYPES, increment, timeparse, quote_ident, parse
 
 
@@ -271,7 +274,6 @@ class GDALInspector(InspectorMixin):
 class OGRTruncatedConverter(OGRInspector):
     def convert_truncated(self, source_layer_name, dest_layer_name):
         converted_mapping = {}
-        dest_layer_name = dest_layer_name.split(':')[1]
         dest_layer = self.data.GetLayerByName(dest_layer_name)
         source_layer = self.data.GetLayerByName(source_layer_name)
         dest_schema = dest_layer.GetLayerDefn()
